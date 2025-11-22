@@ -1,0 +1,68 @@
+<mat-toolbar color="primary" class="header">
+  <div class="header-content">
+    <div class="logo-section">
+      <button mat-icon-button class="menu-button" (click)="toggleSidebar()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <a routerLink="/" class="logo">
+        <mat-icon class="logo-icon">shield</mat-icon>
+        <span class="logo-text">Warcraft Armory</span>
+      </a>
+    </div>
+
+    <nav class="nav-links">
+      <a
+        mat-button
+        routerLink="/characters"
+        routerLinkActive="active-link"
+        class="nav-link"
+      >
+        <mat-icon>person</mat-icon>
+        Characters
+      </a>
+      <a
+        mat-button
+        routerLink="/items"
+        routerLinkActive="active-link"
+        class="nav-link"
+      >
+        <mat-icon>inventory_2</mat-icon>
+        Items
+      </a>
+      <a
+        mat-button
+        routerLink="/guilds"
+        routerLinkActive="active-link"
+        class="nav-link"
+      >
+        <mat-icon>groups</mat-icon>
+        Guilds
+      </a>
+    </nav>
+
+    <div class="actions">
+      <button 
+        mat-icon-button 
+        (click)="toggleTheme()" 
+        [attr.aria-label]="isDarkMode() ? 'Switch to light mode' : 'Switch to dark mode'"
+        matTooltip="{{ isDarkMode() ? 'Light mode' : 'Dark mode' }}"
+      >
+        <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+      <app-region-selector></app-region-selector>
+      <button mat-icon-button [matMenuTriggerFor]="menu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item>
+          <mat-icon>settings</mat-icon>
+          Settings
+        </button>
+        <button mat-menu-item>
+          <mat-icon>info</mat-icon>
+          About
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+</mat-toolbar>

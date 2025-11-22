@@ -1,0 +1,29 @@
+@if (error()) {
+  <mat-card class="error-card">
+    <mat-card-header>
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <mat-card-title>{{ error()!.title }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>{{ error()!.detail }}</p>
+      @if (error()!.errors) {
+        <ul class="error-list">
+          @for (errorMessages of getErrorMessages(error()!); track $index) {
+            <li>{{ errorMessages }}</li>
+          }
+        </ul>
+      }
+    </mat-card-content>
+    <mat-card-actions>
+      @if (showRetry()) {
+        <button mat-raised-button color="primary" (click)="retry.emit()">
+          <mat-icon>refresh</mat-icon>
+          Retry
+        </button>
+      }
+      <button mat-button (click)="dismiss.emit()">
+        Dismiss
+      </button>
+    </mat-card-actions>
+  </mat-card>
+}

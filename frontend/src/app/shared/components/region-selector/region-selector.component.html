@@ -1,0 +1,13 @@
+<mat-form-field appearance="outline">
+  <mat-label>Region</mat-label>
+  <mat-select
+    [value]="selectedRegion()"
+    (selectionChange)="onRegionChange($event.value)"
+  >
+    @for (region of availableRegions(); track region) {
+      <mat-option [value]="region">
+        {{ getRegionLabel(region) }}
+      </mat-option>
+    }
+  </mat-select>
+</mat-form-field>

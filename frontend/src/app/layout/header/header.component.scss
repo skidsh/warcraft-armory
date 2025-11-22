@@ -1,0 +1,129 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: linear-gradient(135deg, #1565C0 0%, #1976D2 50%, #1E88E5 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 $spacing-4;
+  height: 64px;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  text-decoration: none;
+  color: white;
+  font-size: $text-xl;
+  font-weight: $font-bold;
+  font-family: $font-display;
+  
+  &:hover {
+    color: white;
+    opacity: 0.9;
+  }
+}
+
+.logo-icon {
+  font-size: $text-4xl;
+  width: 2rem;
+  height: 2rem;
+  color: white;
+}
+
+.logo-text {
+  @include xs {
+    display: none;
+  }
+}
+
+.nav-links {
+  display: flex;
+  gap: $spacing-2;
+  flex: 1;
+  justify-content: center;
+
+  @include xs {
+    display: none;
+  }
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  color: white;
+  padding: $spacing-2 $spacing-4;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 80%;
+    height: 3px;
+    background: white;
+    border-radius: 2px;
+    transition: transform 0.2s ease;
+  }
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    transform: translateY(-1px);
+    
+    &::before {
+      transform: translateX(-50%) scaleX(1);
+    }
+  }
+  
+  mat-icon {
+    color: white;
+  }
+}
+
+.active-link {
+  background-color: rgba(255, 255, 255, 0.2);
+  font-weight: $font-semibold;
+  
+  &::before {
+    transform: translateX(-50%) scaleX(1);
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+}
+
+.menu-button {
+  @include sm {
+    display: none;
+  }
+}

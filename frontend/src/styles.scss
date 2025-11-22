@@ -1,0 +1,198 @@
+@use '@angular/material' as mat;
+@use './styles/variables' as *;
+@use './styles/theme';
+@use './styles/mixins' as *;
+
+// ============================================
+// ANGULAR MATERIAL THEME
+// ============================================
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+// ============================================
+// BASE STYLES
+// ============================================
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: $font-primary;
+  font-size: $text-base;
+  line-height: $leading-normal;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ============================================
+// TYPOGRAPHY
+// ============================================
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-display;
+  font-weight: $font-bold;
+  line-height: $leading-tight;
+  margin: 0 0 $spacing-4 0;
+  color: var(--text-primary);
+}
+
+h1 { font-size: $text-4xl; }
+h2 { font-size: $text-3xl; }
+h3 { font-size: $text-2xl; }
+h4 { font-size: $text-xl; }
+h5 { font-size: $text-lg; }
+h6 { font-size: $text-base; }
+
+p {
+  margin: 0 0 $spacing-4 0;
+  color: var(--text-secondary);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: var(--primary-hover);
+  }
+}
+
+// ============================================
+// ANGULAR MATERIAL OVERRIDES
+// ============================================
+
+// Cards
+.mat-mdc-card {
+  @include card;
+}
+
+// Buttons
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button {
+  border-radius: var(--radius-sm) !important;
+  font-weight: $font-medium !important;
+  
+  .mdc-button__ripple,
+  .mat-mdc-button-persistent-ripple,
+  .mat-ripple {
+    border-radius: var(--radius-sm) !important;
+  }
+}
+
+.mat-mdc-raised-button,
+.mat-mdc-unelevated-button {
+  @include button-primary;
+}
+
+.mat-mdc-outlined-button {
+  @include button-secondary;
+}
+
+// Form Fields
+.mat-mdc-form-field {
+  width: 100%;
+  
+  .mat-mdc-text-field-wrapper {
+    background-color: var(--surface-1);
+  }
+  
+  .mat-mdc-form-field-focus-overlay {
+    background-color: transparent;
+  }
+  
+  input {
+    color: var(--text-primary);
+  }
+  
+  .mat-mdc-input-element::placeholder {
+    color: var(--text-tertiary);
+  }
+}
+
+// Select
+.mat-mdc-select {
+  .mat-mdc-select-value {
+    color: var(--text-primary);
+  }
+  
+  .mat-mdc-select-arrow {
+    color: var(--text-secondary);
+  }
+}
+
+// Toolbar
+.mat-toolbar {
+  background-color: var(--primary) !important;
+  color: white !important;
+}
+
+// Divider
+.mat-divider {
+  border-top-color: var(--border);
+}
+
+// Icons
+.mat-icon {
+  color: var(--text-secondary);
+}
+
+// ============================================
+// UTILITY CLASSES
+// ============================================
+
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+
+.bg-surface-1 { background-color: var(--surface-1); }
+.bg-surface-2 { background-color: var(--surface-2); }
+.bg-surface-3 { background-color: var(--surface-3); }
+
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+
+// Spacing utilities
+@for $i from 0 through 16 {
+  .m-#{$i} { margin: #{$i * 0.25}rem; }
+  .mt-#{$i} { margin-top: #{$i * 0.25}rem; }
+  .mr-#{$i} { margin-right: #{$i * 0.25}rem; }
+  .mb-#{$i} { margin-bottom: #{$i * 0.25}rem; }
+  .ml-#{$i} { margin-left: #{$i * 0.25}rem; }
+  .mx-#{$i} { margin-left: #{$i * 0.25}rem; margin-right: #{$i * 0.25}rem; }
+  .my-#{$i} { margin-top: #{$i * 0.25}rem; margin-bottom: #{$i * 0.25}rem; }
+  
+  .p-#{$i} { padding: #{$i * 0.25}rem; }
+  .pt-#{$i} { padding-top: #{$i * 0.25}rem; }
+  .pr-#{$i} { padding-right: #{$i * 0.25}rem; }
+  .pb-#{$i} { padding-bottom: #{$i * 0.25}rem; }
+  .pl-#{$i} { padding-left: #{$i * 0.25}rem; }
+  .px-#{$i} { padding-left: #{$i * 0.25}rem; padding-right: #{$i * 0.25}rem; }
+  .py-#{$i} { padding-top: #{$i * 0.25}rem; padding-bottom: #{$i * 0.25}rem; }
+}
+

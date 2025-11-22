@@ -1,0 +1,107 @@
+@use './variables' as *;
+
+// ============================================
+// CSS CUSTOM PROPERTIES (Theme Variables)
+// ============================================
+
+:root {
+  // Primary Colors
+  --primary-50: #{$primary-50};
+  --primary-100: #{$primary-100};
+  --primary-200: #{$primary-200};
+  --primary-300: #{$primary-300};
+  --primary-400: #{$primary-400};
+  --primary-500: #{$primary-500};
+  --primary-600: #{$primary-600};
+  --primary-700: #{$primary-700};
+  --primary-800: #{$primary-800};
+  --primary-900: #{$primary-900};
+
+  // Secondary Colors
+  --secondary-500: #{$secondary-500};
+  --secondary-600: #{$secondary-600};
+  --secondary-700: #{$secondary-700};
+
+  // Accent Colors
+  --accent-500: #{$accent-500};
+  --accent-600: #{$accent-600};
+  --accent-700: #{$accent-700};
+
+  // Semantic Colors
+  --success: #{$success-main};
+  --warning: #{$warning-main};
+  --error: #{$error-main};
+  --info: #{$info-main};
+
+  // WoW Class Colors
+  --class-warrior: #{$class-warrior};
+  --class-paladin: #{$class-paladin};
+  --class-hunter: #{$class-hunter};
+  --class-rogue: #{$class-rogue};
+  --class-priest: #{$class-priest};
+  --class-shaman: #{$class-shaman};
+  --class-mage: #{$class-mage};
+  --class-warlock: #{$class-warlock};
+  --class-monk: #{$class-monk};
+  --class-druid: #{$class-druid};
+  --class-demon-hunter: #{$class-demon-hunter};
+  --class-death-knight: #{$class-death-knight};
+  --class-evoker: #{$class-evoker};
+
+  // Theme Colors - Light Mode (default)
+  --bg: #{$light-bg};
+  --surface-1: #{$light-surface-1};
+  --surface-2: #{$light-surface-2};
+  --surface-3: #{$light-surface-3};
+  --border: #{$light-border};
+  --text-primary: #{$light-text-primary};
+  --text-secondary: #{$light-text-secondary};
+  --text-tertiary: #{$light-text-tertiary};
+  
+  --primary: #{$primary-600};
+  --primary-hover: #{$primary-700};
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.12);
+
+  // Spacing
+  --spacing-1: #{$spacing-1};
+  --spacing-2: #{$spacing-2};
+  --spacing-3: #{$spacing-3};
+  --spacing-4: #{$spacing-4};
+  --spacing-5: #{$spacing-5};
+  --spacing-6: #{$spacing-6};
+  --spacing-8: #{$spacing-8};
+  --spacing-10: #{$spacing-10};
+  --spacing-12: #{$spacing-12};
+  --spacing-16: #{$spacing-16};
+
+  // Border Radius
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+  --radius-full: #{$radius-full};
+}
+
+// Dark Mode
+[data-theme='dark'] {
+  --bg: #{$dark-bg};
+  --surface-1: #{$dark-surface-1};
+  --surface-2: #{$dark-surface-2};
+  --surface-3: #{$dark-surface-3};
+  --border: #{$dark-border};
+  --text-primary: #{$dark-text-primary};
+  --text-secondary: #{$dark-text-secondary};
+  --text-tertiary: #{$dark-text-tertiary};
+  
+  --primary: #{$primary-700};
+  --primary-hover: #{$primary-600};
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+// Smooth theme transitions
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}

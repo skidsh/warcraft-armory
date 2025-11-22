@@ -1,0 +1,47 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
+
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 300px;
+    background: linear-gradient(180deg, rgba(25, 118, 210, 0.05) 0%, transparent 100%);
+    pointer-events: none;
+  }
+}
+
+[data-theme='dark'] .layout-container {
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  
+  &::before {
+    background: linear-gradient(180deg, rgba(25, 118, 210, 0.1) 0%, transparent 100%);
+  }
+}
+
+.main-content {
+  margin-top: 64px;
+  flex: 1;
+  padding: $spacing-8 $spacing-4;
+  max-width: 1400px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  z-index: 1;
+
+  @include xs {
+    padding: $spacing-4 $spacing-2;
+  }
+}
+
+

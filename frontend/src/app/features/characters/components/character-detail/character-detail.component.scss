@@ -1,0 +1,118 @@
+@use '../../../../../styles/variables' as *;
+@use '../../../../../styles/mixins' as *;
+
+.character-detail-container {
+  max-width: 900px;
+  margin: $spacing-8 auto;
+  padding: $spacing-4;
+}
+
+.character-card {
+  margin-bottom: $spacing-8;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid rgba(33, 150, 243, 0.15);
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #1565C0, #1976D2, #1E88E5, #42A5F5);
+  }
+}
+
+.character-header {
+  width: 100%;
+  padding: $spacing-6;
+}
+
+.character-title h1 {
+  margin: 0;
+  font-size: $text-4xl;
+  font-weight: $font-bold;
+  font-family: $font-display;
+}
+
+.character-subtitle {
+  margin: $spacing-3 0;
+  font-size: $text-xl;
+  color: var(--text-secondary);
+  font-weight: $font-medium;
+}
+
+.character-realm {
+  margin: $spacing-2 0 0;
+  font-size: $text-base;
+  color: var(--text-tertiary);
+}
+
+mat-divider {
+  margin: $spacing-6 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $spacing-4;
+  margin: $spacing-6 0;
+}
+
+.stat-item {
+  @include stat-box;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--primary);
+    opacity: 0.5;
+  }
+}
+
+.stat-item mat-icon {
+  font-size: $text-3xl;
+  width: 2rem;
+  height: 2rem;
+  color: var(--primary);
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+.stat-label {
+  font-size: $text-sm;
+  color: var(--text-tertiary);
+  font-weight: $font-medium;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: $text-2xl;
+  font-weight: $font-bold;
+  color: var(--text-primary);
+  font-family: $font-mono;
+}
+
+.last-modified {
+  margin-top: $spacing-6;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: $text-sm;
+}
+
+mat-card-actions {
+  padding: $spacing-4;
+}
