@@ -273,7 +273,7 @@ src/
 - `Serilog.Enrichers.Environment` (3.0+) - Context enrichment
 
 **Documentation**
-- `Swashbuckle.AspNetCore` (6.8+) or `Scalar.AspNetCore` (1.2+) - Swagger/OpenAPI
+- `Scalar.AspNetCore` (1.2+) - Modern OpenAPI documentation UI
 
 **Testing**
 - `xUnit` (2.9+) - Test framework
@@ -1661,7 +1661,7 @@ jobs:
 5. **Implement WebApi Layer**
    - Controllers (Characters, Items, Guilds, etc.)
    - Middleware (exception handling, rate limiting, logging)
-   - Configure Swagger
+   - Configure OpenAPI with Scalar UI
    - Setup health checks
 
 6. **Write Backend Tests**
@@ -1908,11 +1908,11 @@ The project leverages the latest technologies and best practices to create a rob
    - Implement Redis and Memory cache services
 
 4. **WebApi Layer Implementation**
-   - Install Serilog, Swashbuckle packages
+   - Install Serilog, Scalar.AspNetCore packages
    - Create controllers for Characters, Items, Guilds, Realms
    - Implement middleware (exception handling, rate limiting, logging)
    - Configure User Secrets for local development
-   - Setup Swagger/OpenAPI documentation
+   - Setup OpenAPI documentation with Scalar
    - Implement health checks
 
 5. **Backend Testing**

@@ -158,7 +158,7 @@ npm run e2e
 
 ## API Documentation
 
-Swagger UI is available at `/swagger` when running the backend API.
+Scalar API documentation is available at `/scalar/v1` when running the backend API. The OpenAPI specification is available at `/openapi/v1.json`.
 
 Key endpoints:
 - `GET /api/characters/{region}/{realm}/{name}` - Get character details
