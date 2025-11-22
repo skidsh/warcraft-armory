@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: src/WarcraftArmory.WebApi/Dockerfile
+    container_name: warcraft-armory-backend
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - Redis__ConnectionString=redis:6379
+      - Redis__Password=${REDIS_PASSWORD:-devpassword}
+      - BlizzardApi__ClientId=${BLIZZARD_CLIENT_ID}
+      - BlizzardApi__ClientSecret=${BLIZZARD_CLIENT_SECRET}
+      - BlizzardApi__Region=us
+      - BlizzardApi__Locale=en_US
+      - Logging__LogLevel__Default=Information
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - warcraft-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: warcraft-armory-frontend
+    ports:
+      - "4200:80"
+    environment:
+      - API_BASE_URL=http://backend:8080
+    depends_on:
+      - backend
+    networks:
+      - warcraft-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:8-alpine
+    container_name: warcraft-armory-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-devpassword}
+    networks:
+      - warcraft-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: warcraft-armory-redis-commander
+    profiles:
+      - debug
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD:-devpassword}
+    depends_on:
+      - redis
+    networks:
+      - warcraft-network
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  warcraft-network:
+    driver: bridge
