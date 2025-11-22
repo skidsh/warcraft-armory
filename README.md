@@ -84,7 +84,7 @@ dotnet run
 ```
 
 API will be available at: `https://localhost:5001`
-Swagger documentation: `https://localhost:5001/swagger`
+OpenAPI documentation: `https://localhost:5001/scalar/v1`
 
 #### Frontend
 
