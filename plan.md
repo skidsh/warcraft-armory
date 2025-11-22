@@ -1931,51 +1931,170 @@ The project leverages the latest technologies and best practices to create a rob
      - Volume for Redis data persistence
    - Environment variables configured via .env file
 
+#### Phase 2: Backend Development - Domain Layer (Nov 22, 2025)
+1. **Domain Layer Complete** ✅
+   - Created 6 entities using C# 14 record types: Character, Item, Guild, Realm, Mount, Achievement
+   - Created 6 enumerations: Region, CharacterClass, CharacterRace, Faction, Gender, ItemQuality
+   - Created 2 value objects with validation: CharacterName, RealmSlug
+   - Created 3 domain exceptions: DomainValidationException, EntityNotFoundException, InvalidEntityException
+   - Created IEntity interface
+   - All entities immutable using init-only properties
+   - Build verified successful
+
+2. **Application Layer Complete** ✅
+   - **Packages installed:**
+     - MediatR 12.4.1 (CQRS implementation)
+     - Mapster 7.4.0 (object mapping - chosen over AutoMapper for better performance)
+     - Mapster.DependencyInjection 1.0.1
+     - FluentValidation.AspNetCore 11.3.0 (input validation)
+   - **DTOs created:**
+     - Request DTOs: GetCharacterRequest, GetItemRequest, GetGuildRequest
+     - Response DTOs: CharacterResponse, ItemResponse, GuildResponse
+   - **CQRS Queries & Handlers:**
+     - GetCharacterQuery + GetCharacterQueryHandler
+     - GetItemQuery + GetItemQueryHandler
+     - GetGuildQuery + GetGuildQueryHandler
+   - **Mapster configurations:**
+     - CharacterMappingConfig (entity → DTO with enum conversions)
+     - ItemMappingConfig
+     - GuildMappingConfig
+   - **FluentValidation validators:**
+     - GetCharacterRequestValidator (name length, realm format, region validation)
+     - GetItemRequestValidator (item ID validation)
+     - GetGuildRequestValidator (guild name, realm validation)
+   - **Interfaces defined:**
+     - IBlizzardApiService (Blizzard API operations)
+     - ICacheService (caching operations with Get/Set/Remove/GetOrSet)
+   - Build verified successful
+
+3. **Infrastructure Layer Complete** ✅ (Nov 22, 2025)
+   - **Packages installed:**
+     - Refit 7.2.22 (type-safe HTTP client)
+     - Polly 8.5.0 (resilience patterns - retry, circuit breaker, timeout)
+     - StackExchange.Redis 2.8.16 (Redis client)
+     - Microsoft.Extensions.Caching.Memory 10.0.0
+     - Microsoft.Extensions.Http 10.0.0
+     - Microsoft.Extensions.Options 10.0.0
+   - **Configuration models:**
+     - BlizzardApiSettings (Client ID, Client Secret, Region, Rate Limits)
+     - OAuthTokenResponse (Access Token, Expires In)
+   - **OAuth authentication:**
+     - BlizzardAuthService (OAuth 2.0 client credentials flow)
+     - Token caching with automatic refresh before expiration
+   - **Distributed rate limiting (Redis-based for multi-pod deployments):**
+     - DistributedRateLimiter with per-user limits (60 req/min, 1,000 req/hour)
+     - Global Blizzard API limits (80 req/sec, 28,800 req/hour - 80% of Blizzard's limits)
+     - Thread-safe across multiple pods using Redis keys with time-based expiration
+   - **Blizzard API models:**
+     - BlizzardCharacter, BlizzardItem, BlizzardGuild, BlizzardRealm
+     - Comprehensive properties for mapping to domain entities
+   - **Refit API client:**
+     - IBlizzardApiClient interface with endpoints for Character, Item, Guild, Realm, Mount, Achievement
+     - Configured with Polly resilience policies
+   - **Caching services:**
+     - RedisCacheService (distributed cache using StackExchange.Redis)
+     - MemoryCacheService (per-pod in-memory cache for hot data)
+     - CacheKeyGenerator (consistent cache key generation)
+   - **BlizzardApiService:**
+     - Implements IBlizzardApiService with all CRUD operations
+     - GetCharacterAsync, GetItemAsync, GetGuildAsync, GetRealmAsync (fully implemented)
+     - GetMountsAsync, GetAchievementAsync (placeholder - NotImplementedException)
+     - Complete entity mapping: Blizzard API models → Domain entities
+     - Enum mapping helpers (MapClass, MapRace, MapGender, MapFaction, MapQuality)
+     - Uses DistributedRateLimiter for all API calls
+   - **Architecture documentation:**
+     - RATE_LIMITING_AND_CACHING.md created
+     - Explains distributed rate limiting strategy for multi-pod deployments
+     - Documents two-tier caching approach (Memory + Redis)
+     - Includes monitoring and scaling considerations
+   - Build verified successful
+
+4. **WebApi Layer Complete** ✅ (Nov 22, 2025)
+   - **Packages installed:**
+     - AspNetCore.HealthChecks.Redis 9.0.0 (Redis health checks)
+   - **Controllers created:**
+     - CharactersController - GET /api/characters/{region}/{realm}/{name}
+     - ItemsController - GET /api/items/{region}/{itemId}
+     - GuildsController - GET /api/guilds/{region}/{realm}/{name}
+     - RealmsController - GET /api/realms/{region}/{realmId} (placeholder)
+     - All controllers use MediatR, Mapster, proper error handling, logging
+     - Region validation with helpful error messages
+     - 404 responses with ProblemDetails when entities not found
+   - **Middleware implemented:**
+     - ExceptionHandlingMiddleware - Global error handling
+       - Domain exceptions (EntityNotFoundException, InvalidEntityException, DomainValidationException)
+       - FluentValidation exceptions with property-level errors
+       - HTTP exceptions from Refit/HttpClient
+       - Timeout and cancellation handling
+       - RFC 7807 ProblemDetails format
+       - Environment-aware (detailed errors in Dev, sanitized in Prod)
+     - RateLimitingMiddleware - Per-user rate limiting
+       - Uses DistributedRateLimiter (Redis-based)
+       - IP-based identification (with X-Forwarded-For support)
+       - Rate limit headers (X-RateLimit-Limit-Minute, X-RateLimit-Used-Hour, etc.)
+       - 429 Too Many Requests with Retry-After header
+       - Skips health check endpoints
+   - **Dependency injection configured:**
+     - MediatR for CQRS queries
+     - Mapster for object mapping
+     - FluentValidation for request validation
+     - Redis connection multiplexer (singleton)
+     - RedisCacheService and MemoryCacheService
+     - DistributedRateLimiter
+     - BlizzardAuthService
+     - Refit HTTP client with Polly policies (retry, circuit breaker, timeout)
+     - BlizzardApiService
+     - CORS policy for frontend
+     - Health checks (Redis, Blizzard API)
+   - **Configuration:**
+     - appsettings.json with BlizzardApi, Redis, Caching sections
+     - User Secrets initialized for local development
+     - USER_SECRETS_SETUP.md guide created
+   - **OpenAPI documentation:**
+     - Scalar UI at /scalar/v1
+     - OpenAPI spec at /openapi/v1.json
+   - **Health checks:**
+     - /health - All checks
+     - /health/ready - Ready state checks
+   - Build verified successful - entire solution compiles
+     - GetMountsAsync, GetAchievementAsync (placeholder - NotImplementedException)
+     - Complete entity mapping: Blizzard API models → Domain entities
+     - Enum mapping helpers (MapClass, MapRace, MapGender, MapFaction, MapQuality)
+     - Uses DistributedRateLimiter for all API calls
+   - **Architecture documentation:**
+     - RATE_LIMITING_AND_CACHING.md created
+     - Explains distributed rate limiting strategy for multi-pod deployments
+     - Documents two-tier caching approach (Memory + Redis)
+     - Includes monitoring and scaling considerations
+   - Build verified successful
+
 ### 🚧 In Progress
 
-#### Phase 2: Backend Development
-**Next Task**: Implement Domain Layer Entities and Value Objects
-- Create core entities using C# 14 features
-- Implement value objects for type safety
-- Add domain enumerations
-- Define domain exceptions
+#### Phase 3: Frontend Development
+**Current Task**: Initialize Angular 21 Application
+- Setup Angular project with standalone components
+- Configure routing and environments
+- Implement core services and interceptors
+- Create shared components library
 
 ### 📋 Upcoming Tasks
 
-1. **Domain Layer Implementation**
-   - Character, Item, Guild, Realm entities
-   - Enums: Region, CharacterClass, CharacterRace, ItemQuality
-   - Value Objects: CharacterName, RealmSlug
-   - Domain exceptions
+1. **Frontend Development**
+   - Initialize Angular 21 application with standalone architecture
+   - Implement core module (API service, interceptors, guards)
+   - Implement shared module (reusable components, pipes, directives)
+   - Implement feature modules (characters, items, guilds)
+   - Implement layout components
+   - Write frontend tests (Jest, Playwright)
 
-2. **Application Layer Implementation**
-   - Install MediatR, AutoMapper, FluentValidation packages
-   - Create DTOs and validators
-   - Implement CQRS query handlers
-   - Create mapping profiles
-
-3. **Infrastructure Layer Implementation**
-   - Install Refit, Polly, StackExchange.Redis packages
-   - Implement Blizzard API client with OAuth
-   - Create rate limiter and request throttler
-   - Implement Redis and Memory cache services
-
-4. **WebApi Layer Implementation**
-   - Install Serilog, Scalar.AspNetCore packages
-   - Create controllers for Characters, Items, Guilds, Realms
-   - Implement middleware (exception handling, rate limiting, logging)
-   - Configure User Secrets for local development
-   - Setup OpenAPI documentation with Scalar
-   - Implement health checks
-
-5. **Backend Testing**
+2. **Backend Testing**
    - Install FluentAssertions, NSubstitute packages
    - Write unit tests for Domain entities
-   - Write unit tests for Application handlers
-   - Write integration tests for API endpoints
+   - Write unit tests for Application handlers and validators
+   - Write unit tests for Infrastructure services
+   - Write integration tests for API controllers
+   - Write architecture tests
    - Setup architecture tests with NetArchTest.Rules
-
-6. **Frontend Development**
    - Initialize Angular 21 application
    - Configure Jest for testing
    - Install Angular Material
@@ -2092,6 +2211,6 @@ docker-compose up -d --build
 
 ---
 
-*Last Updated: November 21, 2025*
+*Last Updated: November 22, 2025*
 
 *This plan is a living document and should be updated as the project evolves and requirements change.*
