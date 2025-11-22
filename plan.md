@@ -2,7 +2,9 @@
 
 ## Executive Summary
 
-A scalable, modern web application for searching and displaying World of Warcraft game data using Angular frontend and .NET 10 backend with clean architecture, containerization, multi-tier caching, and comprehensive testing.
+A scalable, modern **read-only** web application for searching and displaying World of Warcraft game data using Angular frontend and .NET 10 backend with clean architecture, containerization, multi-tier caching, and comprehensive testing.
+
+**Important**: This is a **fan-made, read-only website** that consumes the Blizzard Game Data API. It does not allow any data modifications or user-generated content. All data is fetched from Blizzard's official API and cached for performance. The application provides a user-friendly interface for browsing and searching WoW game data without the ability to modify characters, items, or any game content.
 
 ## Technology Stack
 
@@ -19,11 +21,11 @@ A scalable, modern web application for searching and displaying World of Warcraf
 - **.NET 10** (Latest - released November 2025) with **C# 14**
 - **ASP.NET Core 10 Web API**
 - **Clean Architecture** pattern
-- **MediatR 12+** (CQRS implementation)
+- **MediatR 12+** (CQRS implementation (Query handlers only for read-only operations))
 - **AutoMapper 13+** (object mapping)
-- **FluentValidation 11+** (input validation)
-- **Refit 7+** or **RestSharp 112+** (HTTP client)
-- **Polly 8+** (resilience and retry policies)
+- **FluentValidation 11+** (input validation for search parameters)
+- **Refit 7+** or **RestSharp 112+** (HTTP client for Blizzard API)
+- **Polly 8+** (resilience and retry policies for API calls)
 
 ### Infrastructure
 - **Docker 27+** & **Docker Compose V2**
@@ -57,6 +59,8 @@ A scalable, modern web application for searching and displaying World of Warcraf
 - Base URL: `{region}.api.blizzard.com/{API path}`
 - Regions: US, EU, KR, TW, CN
 - Namespaces: `static-{region}`, `dynamic-{region}`, `profile-{region}`
+- **Read-only access**: Game Data API provides read-only access to WoW game data
+- **No modifications allowed**: Cannot create, update, or delete any game data
 
 ### Key API Categories (26 Total)
 1. **Achievement API** - Achievements, categories, media
@@ -87,6 +91,13 @@ A scalable, modern web application for searching and displaying World of Warcraf
 26. **WoW Token API** - Token price index
 
 ## Backend Architecture (Clean Architecture)
+
+**Architecture Philosophy**: 
+- **Read-Only Operations**: All entities are immutable using C# record types
+- **CQRS Queries Only**: No Command handlers - only Query handlers for reading data
+- **No Database for Game Data**: All WoW game data comes from Blizzard API and is cached
+- **Cache-First Strategy**: Redis for distributed cache, IMemoryCache for hot data
+- **HTTP GET Only**: Controllers expose only GET endpoints
 
 ### Project Structure
 
@@ -142,20 +153,30 @@ src/
 │   ├── Validation/                     # FluentValidation validators
 │   │   ├── GetCharacterRequestValidator.cs
 │   │   └── SearchItemsRequestValidator.cs
-│   └── UseCases/                       # CQRS Commands/Queries
+│   └── UseCases/                       # CQRS Queries (read-only operations)
 │       ├── Characters/
-│       │   ├── Queries/
-│       │   │   ├── GetCharacterQuery.cs
-│       │   │   └── GetCharacterQueryHandler.cs
-│       │   └── Commands/
+│       │   └── Queries/
+│       │       ├── GetCharacterQuery.cs
+│       │       ├── GetCharacterQueryHandler.cs
+│       │       └── SearchCharactersQuery.cs
 │       ├── Items/
 │       │   └── Queries/
+│       │       ├── GetItemQuery.cs
 │       │       ├── SearchItemsQuery.cs
 │       │       └── SearchItemsQueryHandler.cs
-│       └── Guilds/
+│       ├── Guilds/
+│       │   └── Queries/
+│       │       ├── GetGuildQuery.cs
+│       │       └── GetGuildQueryHandler.cs
+│       ├── Realms/
+│       │   └── Queries/
+│       │       ├── GetRealmQuery.cs
+│       │       └── ListRealmsQuery.cs
+│       └── Achievements/
 │           └── Queries/
-│               ├── GetGuildQuery.cs
-│               └── GetGuildQueryHandler.cs
+│               ├── GetAchievementQuery.cs
+│               └── SearchAchievementsQuery.cs
+│   # Note: No Commands folder - this is a read-only API
 │
 ├── WarcraftArmory.Infrastructure/      # External Concerns
 │   ├── ExternalServices/               # Third-party API clients
@@ -185,14 +206,14 @@ src/
 │       └── CacheWarmupService.cs
 │
 ├── WarcraftArmory.WebApi/              # Presentation Layer
-│   ├── Controllers/                    # API controllers
-│   │   ├── CharactersController.cs
-│   │   ├── ItemsController.cs
-│   │   ├── GuildsController.cs
-│   │   ├── RealmsController.cs
-│   │   ├── AchievementsController.cs
-│   │   ├── MountsController.cs
-│   │   └── SearchController.cs
+│   ├── Controllers/                    # API controllers (GET endpoints only)
+│   │   ├── CharactersController.cs     # GET /api/characters/{region}/{realm}/{name}
+│   │   ├── ItemsController.cs          # GET /api/items/{id}, GET /api/items/search
+│   │   ├── GuildsController.cs         # GET /api/guilds/{region}/{realm}/{name}
+│   │   ├── RealmsController.cs         # GET /api/realms, GET /api/realms/{id}
+│   │   ├── AchievementsController.cs   # GET /api/achievements/{id}
+│   │   ├── MountsController.cs         # GET /api/mounts, GET /api/mounts/{id}
+│   │   └── SearchController.cs         # GET /api/search (unified search)
 │   ├── Middleware/                     # Custom middleware
 │   │   ├── ExceptionHandlingMiddleware.cs
 │   │   ├── RateLimitingMiddleware.cs
@@ -207,6 +228,7 @@ src/
 │   ├── appsettings.Development.json
 │   ├── Dockerfile
 │   └── Program.cs                      # Application entry point
+│   # Note: All controllers only expose GET endpoints - no POST/PUT/DELETE/PATCH
 │
 └── tests/
     ├── WarcraftArmory.Domain.Tests/
@@ -228,21 +250,36 @@ src/
 
 ### C# 14 Features to Leverage
 
-1. **Primary Constructors** - Simplify DTOs and simple classes
-2. **Collection Expressions** `[]` - Cleaner initialization with spread operator
-3. **Params Collections** - Flexible method parameters
-4. **Inline Arrays** - Performance-critical sections
-5. **Lambda Improvements** - Better LINQ expressions and natural types
-6. **Record Types** - Immutable DTOs
-7. **Init-only Properties** - Configuration objects
-8. **Pattern Matching Enhancements** - Complex conditionals
-9. **Required Members** - Critical properties validation
+1. **Record Types** - Use for all immutable DTOs, entities, and value objects
+   - DTOs: `public record CharacterResponse(int Id, string Name, ...);`
+   - Entities: `public record Character { get; init; }` for read-only data models
+   - Value Objects: `public sealed record CharacterName` for validated types
+2. **Primary Constructors** - Simplify DTOs with positional record syntax
+3. **Collection Expressions** `[]` - Cleaner initialization with spread operator
+4. **Params Collections** - Flexible method parameters
+5. **Inline Arrays** - Performance-critical sections
+6. **Lambda Improvements** - Better LINQ expressions and natural types
+7. **Init-only Properties** - All entities use init-only properties (immutable after construction)
+8. **Pattern Matching Enhancements** - Complex conditionals in query handlers
+9. **Required Members** - Critical properties validation in DTOs
 10. **File-scoped Types** - Internal implementations
 11. **Interceptors** - Code generation and AOP scenarios
-12. **ref readonly Parameters** - Performance optimization
+12. **ref readonly Parameters** - Performance optimization for large structs
 13. **Partial Properties** - Code generation improvements
 14. **Method Group Natural Type** - Better delegate inference
 
+**Note**: Since this is a read-only API, all domain entities and DTOs should be immutable using record types or init-only properties. No mutable state is needed.
+
+### Data Transformation & Enrichment Strategy (Application Layer)
+
+In scenarios where entity data needs to be transformed or enriched (e.g., adding computed properties, combining data from multiple API calls, or mapping between different DTOs and domain entities), all such logic should be implemented in the **Application layer**. This ensures that the Domain layer remains pure and immutable, while the Application layer can compose, project, and enrich data for presentation or API responses.
+
+- **Computed Properties**: Use projection methods or mapping libraries (e.g., AutoMapper) to add computed fields to DTOs without mutating the underlying entities.
+- **Combining Data**: Aggregate and combine data from multiple API calls in Application services or query handlers, then map the results to enriched DTOs.
+- **Mapping**: Use explicit mapping functions or libraries to convert between domain entities and DTOs, ensuring immutability is preserved.
+- **Composition**: For complex responses, compose DTOs from multiple sources, always returning new immutable objects.
+
+All transformation logic should be unit tested and kept separate from domain models. This approach maintains clean separation of concerns and leverages the strengths of immutable data structures.
 ### Key NuGet Packages
 
 **Core Framework**
@@ -1746,35 +1783,47 @@ jobs:
 
 ### Phase 6+: Advanced Features
 
-1. **User Authentication**
-   - Battle.net OAuth for users
-   - Save favorite characters
-   - Track collections (mounts, pets, achievements)
+**Important**: All enhancements maintain read-only access to Blizzard's API. User features involve storing user preferences locally, not modifying game data.
+
+1. **User Preferences & Bookmarks**
+   - Battle.net OAuth for user authentication (optional)
+   - Save favorite characters (stored in our database, not Blizzard's)
+   - Bookmark items, guilds, realms for quick access
+   - Track personal collection progress (mounts, pets, achievements)
+   - Custom character comparison and notes
+   - **Note**: All user data is stored locally in our database; game data remains read-only
 
 2. **Real-time Features**
-   - WebSockets for live updates
-   - Auction house price tracking
-   - Realm status notifications
+   - WebSockets for live auction house updates
+   - Auction house price tracking and alerts
+   - Realm status change notifications
+   - Price history charts and trend analysis
 
-3. **Advanced Search**
-   - Elasticsearch integration
-   - Full-text search
-   - Faceted search
+3. **Advanced Search & Discovery**
+   - Elasticsearch integration for faster searches
+   - Full-text search across all game content
+   - Faceted search with multiple filters
+   - "Similar items" recommendations
+   - Popular searches and trending content
 
-4. **Data Analytics**
-   - Character statistics
-   - Item popularity trends
-   - Realm population analysis
+4. **Data Analytics & Insights**
+   - Character level distribution statistics
+   - Item popularity trends over time
+   - Realm population analysis and trends
+   - Class and race distribution charts
+   - Achievement completion rates
 
 5. **Mobile App**
-   - React Native or Flutter
-   - Share backend API
-   - Offline support
+   - React Native or Flutter mobile app
+   - Share same read-only backend API
+   - Offline caching for browsing previously viewed content
+   - Push notifications for tracked auction items
 
-6. **Kubernetes Deployment**
-   - Helm charts
-   - Auto-scaling
-   - Load balancing
+6. **Kubernetes Deployment & Scaling**
+   - Helm charts for deployment
+   - Horizontal pod auto-scaling
+   - Load balancing across regions
+   - Multi-region deployment for global access
 
 ## Decision Points
 
@@ -1816,9 +1865,10 @@ jobs:
    - **Recommendation**: PrimeNG for rapid development
 
 6. **Database Requirement**
-   - Pure cache-based (no DB)? Y
-   - Add PostgreSQL/MySQL for user data? N
-   - **Recommendation**: Start without DB, add if user features needed
+   - Pure cache-based (no DB for game data)? Y
+   - Add PostgreSQL/MySQL for user preferences/bookmarks? N (initially)
+   - **Recommendation**: Start without DB since all game data comes from Blizzard API and is cached in Redis. Add database only if implementing user accounts and bookmarks in future phases.
+   - **Note**: No database needed for core functionality - this is a read-only view of Blizzard's data
 
 7. **Testing Priority**
    - Full TDD approach? Y
@@ -1829,13 +1879,16 @@ jobs:
 
 This comprehensive plan provides a solid foundation for building a production-ready World of Warcraft game data search website. The architecture is:
 
+- **Read-Only by Design**: Fan-made website that displays Blizzard game data without modifications
 - **Scalable**: Multi-tier caching, containerization, stateless backend
 - **Maintainable**: Clean architecture, SOLID principles, comprehensive tests
-- **Modern**: .NET 10 (Nov 2025), C# 14, Angular 21 (Nov 2025), Node 22 LTS, Redis 8, Docker 27+
-- **Extensible**: Plugin architecture, strategy patterns, modular design
+- **Modern**: .NET 10 (Nov 2025), C# 14 with record types, Angular 21 (Nov 2025), Node 22 LTS, Redis 8, Docker 27+
+- **Immutable**: All domain entities use record types for immutability and thread-safety
+- **Extensible**: Strategy patterns, modular design, CQRS queries
 - **Production-Ready**: Security, monitoring, CI/CD, documentation
+- **Cache-First**: No database needed - Redis for distributed caching, memory cache for hot data
 
-The project leverages the latest technologies and best practices to create a robust, efficient, and user-friendly application for exploring World of Warcraft game data.
+The project leverages the latest technologies and best practices to create a robust, efficient, and user-friendly application for exploring World of Warcraft game data through Blizzard's official API.
 
 ## Implementation Status
 
