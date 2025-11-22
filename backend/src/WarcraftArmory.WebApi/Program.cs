@@ -19,14 +19,32 @@ using WarcraftArmory.WebApi.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 // ===== Configuration =====
+// Load settings from appsettings.json, User Secrets, and environment variables
 var blizzardApiSettings = builder.Configuration
     .GetSection("BlizzardApi")
-    .Get<BlizzardApiSettings>() ?? throw new InvalidOperationException("BlizzardApi configuration is missing.");
+    .Get<BlizzardApiSettings>() ?? new BlizzardApiSettings
+    {
+        ClientId = "",
+        ClientSecret = ""
+    };
+
+// Fallback to environment variables with alternate naming (BLIZZARD_CLIENT_ID)
+if (string.IsNullOrWhiteSpace(blizzardApiSettings.ClientId))
+{
+    blizzardApiSettings = blizzardApiSettings with
+    {
+        ClientId = builder.Configuration["BLIZZARD_CLIENT_ID"] ?? blizzardApiSettings.ClientId,
+        ClientSecret = builder.Configuration["BLIZZARD_CLIENT_SECRET"] ?? blizzardApiSettings.ClientSecret
+    };
+}
 
 // Validate Blizzard API settings
 blizzardApiSettings.Validate();
 
+// Register as both singleton instance and IOptions for dependency injection compatibility
 builder.Services.AddSingleton(blizzardApiSettings);
+builder.Services.AddSingleton<Microsoft.Extensions.Options.IOptions<BlizzardApiSettings>>(
+    new Microsoft.Extensions.Options.OptionsWrapper<BlizzardApiSettings>(blizzardApiSettings));
 
 // ===== Logging =====
 builder.Logging.ClearProviders();
@@ -97,6 +115,13 @@ var circuitBreakerPolicy = HttpPolicyExtensions
 var timeoutPolicy = Policy.TimeoutAsync<HttpResponseMessage>(
     TimeSpan.FromSeconds(blizzardApiSettings.RequestTimeoutSeconds));
 
+// ===== Blizzard OAuth Authentication Service =====
+builder.Services.AddHttpClient<BlizzardAuthService>();
+builder.Services.AddSingleton<BlizzardAuthService>();
+
+// ===== Authentication Handler =====
+builder.Services.AddTransient<BlizzardAuthenticationHandler>();
+
 // ===== Refit HTTP Client for Blizzard API =====
 builder.Services.AddRefitClient<IBlizzardApiClient>()
     .ConfigureHttpClient((sp, client) =>
@@ -105,6 +130,7 @@ builder.Services.AddRefitClient<IBlizzardApiClient>()
         client.BaseAddress = new Uri(blizzardApiSettings.GetApiBaseUrl(region));
         client.Timeout = TimeSpan.FromSeconds(blizzardApiSettings.RequestTimeoutSeconds);
     })
+    .AddHttpMessageHandler<BlizzardAuthenticationHandler>()
     .AddPolicyHandler(retryPolicy)
     .AddPolicyHandler(circuitBreakerPolicy)
     .AddPolicyHandler(timeoutPolicy);

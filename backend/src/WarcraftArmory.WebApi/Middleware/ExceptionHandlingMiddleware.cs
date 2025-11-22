@@ -3,6 +3,8 @@ using System.Text.Json;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using WarcraftArmory.Domain.Exceptions;
+using ApiException = Refit.ApiException;
+using ProblemDetails = Microsoft.AspNetCore.Mvc.ProblemDetails;
 
 namespace WarcraftArmory.WebApi.Middleware;
 
@@ -88,7 +90,10 @@ public sealed class ExceptionHandlingMiddleware
                 Instance = context.Request.Path
             },
 
-            // HTTP request exceptions (from Refit/HttpClient)
+            // Refit API exceptions (from Blizzard API)
+            ApiException apiEx => HandleApiException(apiEx, context),
+
+            // HTTP request exceptions (from HttpClient)
             HttpRequestException httpEx => new ProblemDetails
             {
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
@@ -154,6 +159,59 @@ public sealed class ExceptionHandlingMiddleware
         };
 
         await context.Response.WriteAsync(JsonSerializer.Serialize(problemDetails, options));
+    }
+
+    private ProblemDetails HandleApiException(ApiException apiException, HttpContext context)
+    {
+        var statusCode = apiException.StatusCode;
+        
+        return statusCode switch
+        {
+            HttpStatusCode.NotFound => new ProblemDetails
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+                Title = "Resource not found",
+                Status = (int)HttpStatusCode.NotFound,
+                Detail = "The requested resource was not found on the Blizzard API. Please verify the character/guild name and realm are correct.",
+                Instance = context.Request.Path
+            },
+            HttpStatusCode.Unauthorized => new ProblemDetails
+            {
+                Type = "https://tools.ietf.org/html/rfc7235#section-3.1",
+                Title = "API authentication failed",
+                Status = (int)HttpStatusCode.Unauthorized,
+                Detail = _environment.IsDevelopment()
+                    ? "Failed to authenticate with the Blizzard API. Check your API credentials."
+                    : "An authentication error occurred.",
+                Instance = context.Request.Path
+            },
+            HttpStatusCode.TooManyRequests => new ProblemDetails
+            {
+                Type = "https://tools.ietf.org/html/rfc6585#section-4",
+                Title = "Rate limit exceeded",
+                Status = (int)HttpStatusCode.TooManyRequests,
+                Detail = "The Blizzard API rate limit has been exceeded. Please try again later.",
+                Instance = context.Request.Path
+            },
+            HttpStatusCode.ServiceUnavailable => new ProblemDetails
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.6.3",
+                Title = "Service unavailable",
+                Status = (int)HttpStatusCode.ServiceUnavailable,
+                Detail = "The Blizzard API is currently unavailable. Please try again later.",
+                Instance = context.Request.Path
+            },
+            _ => new ProblemDetails
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                Title = "External API error",
+                Status = (int)statusCode,
+                Detail = _environment.IsDevelopment()
+                    ? $"Blizzard API error: {apiException.Message}"
+                    : "An error occurred while communicating with the Blizzard API.",
+                Instance = context.Request.Path
+            }
+        };
     }
 }
 

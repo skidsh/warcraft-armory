@@ -65,7 +65,7 @@ public sealed class BlizzardApiService : IBlizzardApiService
                 // Call Blizzard API
                 var @namespace = CacheKeyGenerator.GetNamespace("profile", regionString);
                 var blizzardCharacter = await _apiClient.GetCharacterAsync(
-                    regionString, realmSlug, characterName, @namespace);
+                    realmSlug, characterName, @namespace);
 
                 // Map to domain entity
                 return MapToDomainCharacter(blizzardCharacter, realm, region);
@@ -97,7 +97,7 @@ public sealed class BlizzardApiService : IBlizzardApiService
                 // Call Blizzard API
                 var @namespace = CacheKeyGenerator.GetNamespace("static", regionString);
                 var blizzardItem = await _apiClient.GetItemAsync(
-                    regionString, itemId, @namespace);
+                    itemId, @namespace);
 
                 // Map to domain entity
                 return MapToDomainItem(blizzardItem);
@@ -136,7 +136,7 @@ public sealed class BlizzardApiService : IBlizzardApiService
                 // Call Blizzard API
                 var @namespace = CacheKeyGenerator.GetNamespace("profile", regionString);
                 var blizzardGuild = await _apiClient.GetGuildAsync(
-                    regionString, realmSlug, guildName, @namespace);
+                    realmSlug, guildName, @namespace);
 
                 // Map to domain entity
                 return MapToDomainGuild(blizzardGuild, realm, region);
@@ -169,7 +169,7 @@ public sealed class BlizzardApiService : IBlizzardApiService
                 // Call Blizzard API
                 var @namespace = CacheKeyGenerator.GetNamespace("dynamic", regionString);
                 var blizzardRealm = await _apiClient.GetRealmAsync(
-                    regionString, normalizedSlug, @namespace);
+                    normalizedSlug, @namespace);
 
                 // Map to domain entity
                 return MapToDomainRealm(blizzardRealm, region);
